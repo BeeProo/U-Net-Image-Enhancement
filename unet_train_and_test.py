@@ -20,13 +20,17 @@ class UNet(nn.Module):
                 nn.Conv2d(out_channels, out_channels, 3, padding=1),
                 nn.ReLU(inplace=True)
             )
-
+        # Encoder
         self.enc1 = CBR(3, 64)
         self.enc2 = CBR(64, 128)
         self.enc3 = CBR(128, 256)
         self.enc4 = CBR(256, 512)
         self.pool = nn.MaxPool2d(2)
+        
+        # Bottleneck
         self.middle = CBR(512, 1024)
+
+        # Decoder
         self.up4 = nn.ConvTranspose2d(1024, 512, 2, stride=2)
         self.dec4 = CBR(1024, 512)
         self.up3 = nn.ConvTranspose2d(512, 256, 2, stride=2)
@@ -76,7 +80,7 @@ class ImageEnhancementDataset(Dataset):
 # ==================== MAIN ====================
 
 def main():
-    # ----- Setup -----
+    
     input_folder = "dataset/inputs"
     target_folder = "dataset/targets"
     save_model_path = "unet_image_enhancer.pth"
@@ -85,7 +89,6 @@ def main():
         T.Resize((256, 256)),
         T.ToTensor(),
     ])
-
     dataset = ImageEnhancementDataset(input_folder, target_folder, transform=transform)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True, num_workers=0)
 
@@ -94,10 +97,10 @@ def main():
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-    # ----- Training -----
+    # Training
     print("🚀 Starting training...")
-    print(f"Found {len(dataloader)} batches in training dataset.")
-    num_epochs = 50
+    print(f"Found {len(dataloader)} batches in training dataset.")  #4 images per batch
+    num_epochs = 100
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
